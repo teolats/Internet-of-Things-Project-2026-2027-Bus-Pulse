@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BusPulse · Alpha</title>
+<link rel="icon" href="pwa/icons/icon-192.png">
+<style>
+  body { font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; background: #102A33; color: #F4F6F3; margin: 0; min-height: 100vh; display: grid; place-items: center; }
+  .wrap { max-width: 760px; padding: 40px 24px; }
+  h1 { font-size: 44px; margin: 0 0 6px; } p { color: #C6D8D5; line-height: 1.5; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+  a.card { display: block; background: #1A3F4A; border-radius: 16px; padding: 22px; color: #F4F6F3; text-decoration: none; border: 2px solid transparent; }
+  a.card:hover { border-color: #E9A23B; }
+  a.card b { font-size: 20px; display: block; margin-bottom: 6px; color: #E9A23B; }
+  code { background: #1A3F4A; padding: 2px 6px; border-radius: 5px; }
+  @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>BusPulse</h1>
+  <p>Alpha version · IoT Project 13, University of Patras. Both apps start with simulated data. Add <code>?mode=live&amp;broker=ws://localhost:9001</code> to listen to the MQTT broker instead.</p>
+  <div class="cards">
+    <a class="card" href="dashboard/index.html"><b>Operations dashboard</b>For Astiko KTEL and the Municipality: live map, fleet, comfort &amp; air, double parking, reports and the AI assistant.</a>
+    <a class="card" href="pwa/index.html"><b>Passenger app (PWA)</b>Next buses at my stop, how full they are, comfort score, seat alert. Open it on a phone and add it to the home screen.</a>
+  </div>
+</div>
+</body>
+</html>

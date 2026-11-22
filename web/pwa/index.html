@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102A33">
+<title>BusPulse · Patras buses</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="../shared/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+  <header class="head">
+    <div class="top"><div class="brand"><span class="logo">BP</span>BusPulse</div><span class="src" id="src">demo</span><span class="clock" id="clock">--:--</span></div>
+    <label class="lbl" for="stop">My stop</label>
+    <select id="stop"></select>
+    <div class="dirs" id="dirs">
+      <button data-dir="outbound" class="on">To University · Rio</button>
+      <button data-dir="inbound">To the centre</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="tab active" id="tab-arrivals">
+      <div id="notice"></div>
+      <h2>Next buses · Line 6</h2>
+      <ul class="arrivals" id="arrivals"><li class="empty">Loading…</li></ul>
+      <div class="card notify">
+        <div><b>Seat alert</b><p>Tell me when a bus with free seats is 5 minutes away</p></div>
+        <label class="switch"><input type="checkbox" id="seatAlert"><span></span></label>
+      </div>
+      <div class="levels" id="levels"></div>
+    </section>
+
+    <section class="tab" id="tab-map"><div id="map"></div><p class="hint">Tap a bus to see how full it is.</p></section>
+
+    <section class="tab" id="tab-ask">
+      <h2>Ask BusPulse</h2>
+      <div class="chat" id="chat"></div>
+      <div class="sugg" id="sugg"></div>
+      <form class="askf" id="askForm"><input id="askIn" placeholder="Ask about seats, air or delays…" autocomplete="off"><button>Send</button></form>
+    </section>
+
+    <section class="tab" id="tab-info">
+      <h2>About</h2>
+      <div class="card"><p><b>BusPulse</b> measures how full each bus is and how comfortable the ride is, with sensors on board. A camera counts passengers on the bus itself: no video is sent or stored.</p>
+        <p>Comfort score (1–5) combines air quality (CO₂), temperature, noise, braking and crowding.</p></div>
+      <div class="card"><p><b>Data source</b>: <span id="srcInfo"></span></p>
+        <p class="small">Alpha version · IoT Project 13, University of Patras. Demo route, approximate stop positions.</p></div>
+      <div class="card"><button class="btn" id="installBtn" hidden>Install on this phone</button>
+        <p class="small">On iPhone: Share → Add to Home Screen.</p></div>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="arrivals" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Arrivals</button>
+    <button data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Map</button>
+    <button data-tab="ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg>Ask</button>
+    <button data-tab="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>About</button>
+  </nav>
+
+  <div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-body" id="sheetBody"></div></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="../shared/vendor/leaflet/leaflet.js"></script>
+<script src="../shared/vendor/mqtt.min.js"></script>
+<script src="../shared/config.js"></script>
+<script src="../shared/routes.js"></script>
+<script src="../shared/buspulse-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

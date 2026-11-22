@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BusPulse · Operations dashboard</title>
+<link rel="icon" href="../pwa/icons/icon-192.png">
+<link rel="stylesheet" href="../shared/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<aside class="side">
+  <div class="brand"><div class="logo">BP</div><div><b>BusPulse</b><small>Operations dashboard</small></div></div>
+  <nav id="nav">
+    <a data-view="overview" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Overview</a>
+    <a data-view="fleet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 21v-4M16 21v-4"/></svg>Fleet</a>
+    <a data-view="comfort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Comfort &amp; air</a>
+    <a data-view="obstructions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg>Double parking<span class="count" id="navObs">0</span></a>
+    <a data-view="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h6"/></svg>Reports &amp; AI</a>
+    <a data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg>Settings</a>
+  </nav>
+  <div class="side-foot">Astiko KTEL Patras · Municipality<br>Alpha draft · IoT Project 13</div>
+</aside>
+
+<main>
+  <header class="top">
+    <div><h1 id="viewTitle">Overview</h1><p class="sub" id="lineName">Line 6</p></div>
+    <div class="top-right"><span id="source" class="badge">DEMO DATA</span><span id="clock" class="clock">--:--</span></div>
+  </header>
+
+  <!-- OVERVIEW -->
+  <section class="view active" id="view-overview">
+    <div class="grid g-kpi">
+      <div class="card kpi"><div class="label">Buses in service</div><div class="value" id="kBuses">–</div><div class="note">on line 6</div></div>
+      <div class="card kpi"><div class="label">Passengers on board</div><div class="value" id="kPax">–</div><div class="note" id="kPaxNote"></div></div>
+      <div class="card kpi"><div class="label">Crowded buses</div><div class="value" id="kCrowd">–</div><div class="note">standing only or full</div></div>
+      <div class="card kpi"><div class="label">Average comfort</div><div class="value" id="kComfort">–</div><div class="bar"><span id="kComfortBar"></span></div></div>
+      <div class="card kpi"><div class="label">Open alerts</div><div class="value" id="kAlerts">–</div><div class="note">last hour</div></div>
+      <div class="card kpi"><div class="label">Double parking today</div><div class="value" id="kObs">–</div><div class="note" id="kObsNote"></div></div>
+    </div>
+    <div class="grid g-2-1">
+      <div class="card"><h2>Live map<span class="hint">buses coloured by how full they are</span></h2><div id="map" class="map"></div>
+        <div class="legend" id="legend"></div></div>
+      <div class="card"><h2>Alerts<span class="hint" id="alertCount"></span></h2>
+        <div class="chips" id="alertChips"></div><ul class="alerts" id="alerts"></ul></div>
+    </div>
+    <div class="card strip" style="margin-bottom:16px"><h2>Line 6 right now<span class="hint">above: to Rio Hospital · below: to the centre</span></h2><div id="strip"></div></div>
+    <div class="grid g-3">
+      <div class="card"><h2>Passengers per bus, by hour</h2><div class="chart"><canvas id="chHourly"></canvas></div></div>
+      <div class="card"><h2>CO₂ per bus, last 60 min<span class="hint">ppm</span></h2><div class="chart"><canvas id="chCo2"></canvas></div></div>
+      <div class="card"><h2>Comfort score per bus<span class="hint">1–5</span></h2><div class="chart"><canvas id="chComfort"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- FLEET -->
+  <section class="view" id="view-fleet">
+    <div class="grid" style="grid-template-columns:minmax(0,1fr)">
+      <div class="card"><h2>All buses<span class="hint">click a bus for details · click a column to sort</span></h2>
+        <div style="overflow:auto"><table id="fleet"><thead><tr>
+          <th data-k="busId">Bus</th><th data-k="direction">Direction</th><th data-k="nextStop">Next stop</th><th data-k="passengers">Passengers</th>
+          <th data-k="co2">CO₂</th><th data-k="temperature">Temp</th><th data-k="noise">Noise</th><th data-k="speed">Speed</th><th data-k="comfort">Comfort</th>
+        </tr></thead><tbody></tbody></table></div></div>
+      <div class="card" id="detail"><div class="empty">Select a bus</div></div>
+    </div>
+  </section>
+
+  <!-- COMFORT -->
+  <section class="view" id="view-comfort">
+    <div class="grid g-2">
+      <div class="card"><h2>Cabin temperature, last 60 min<span class="hint">°C</span></h2><div class="chart"><canvas id="chTemp"></canvas></div></div>
+      <div class="card"><h2>Noise level, last 60 min<span class="hint">dB(A)</span></h2><div class="chart"><canvas id="chNoise"></canvas></div></div>
+    </div>
+    <div class="grid g-2">
+      <div class="card"><h2>Ventilation check<span class="hint">time above 1,500 ppm CO₂, last 60 min</span></h2><table id="ventTable"><thead><tr><th>Bus</th><th>Now</th><th>Peak</th><th>Time above limit</th><th>Assessment</th></tr></thead><tbody></tbody></table></div>
+      <div class="card"><h2>Grafana panels<span class="hint">InfluxDB history</span></h2><div id="grafana"></div></div>
+    </div>
+  </section>
+
+  <!-- OBSTRUCTIONS -->
+  <section class="view" id="view-obstructions">
+    <div class="grid g-kpi" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <div class="card kpi"><div class="label">Detected today</div><div class="value" id="oToday">–</div><div class="note">front camera + YOLO</div></div>
+      <div class="card kpi"><div class="label">Most blocked stop</div><div class="value" id="oTop" style="font-size:22px">–</div><div class="note" id="oTopNote"></div></div>
+      <div class="card kpi"><div class="label">Average blocking time</div><div class="value" id="oAvg">–</div><div class="note">per event</div></div>
+      <div class="card kpi"><div class="label">Bus time lost</div><div class="value" id="oLost">–</div><div class="note">estimated extra dwell, today</div></div>
+    </div>
+    <div class="grid g-2-1">
+      <div class="card"><h2>Hot-spots<span class="hint">bigger marker = more events</span></h2><div id="obsMap" class="map"></div></div>
+      <div class="card"><h2>Hot-spot ranking</h2><table id="hotTable"><thead><tr><th>Stop</th><th>Events</th><th>Avg</th><th>Last</th></tr></thead><tbody></tbody></table>
+        <p class="muted" style="font-size:12.5px;margin-top:12px">Shared with the Municipal and Traffic Police as a priority list for enforcement checks.</p></div>
+    </div>
+    <div class="grid g-2">
+      <div class="card"><h2>Latest detections</h2><div style="overflow:auto;max-height:330px"><table id="obsTable"><thead><tr><th>Time</th><th>Bus</th><th>Stop</th><th>Vehicle</th><th>Confidence</th><th>Duration</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h2>YOLO on video<span class="hint">vision/yolo_demo.py output</span></h2>
+        <div class="video" id="yolo"><video src="media/yolo_demo.mp4" controls muted loop onerror="this.parentNode.innerHTML='Put the annotated video from <span class=code>vision/yolo_demo.py</span> at <span class=code>web/dashboard/media/yolo_demo.mp4</span> to play it here.'"></video></div></div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="view" id="view-reports">
+    <div class="grid g-2">
+      <div class="card"><h2>Weekly report draft<span class="hint">written by the AI agent from the data</span></h2>
+        <div class="report" id="report"></div>
+        <div class="row"><button class="btn" id="btnReport">Regenerate</button><button class="btn ghost" id="btnCsv">Download events (CSV)</button><button class="btn ghost" id="btnFleetCsv">Download fleet snapshot (CSV)</button></div></div>
+      <div class="card"><h2>Ask BusPulse<span class="hint" id="llmMode"></span></h2>
+        <div class="chat" id="chat"></div>
+        <div class="suggest" id="suggest"></div>
+        <form class="ask" id="askForm"><input id="askInput" placeholder="e.g. Which buses are crowded right now?" autocomplete="off"><button class="btn">Ask</button></form></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings">
+    <div class="card settings" style="max-width:640px">
+      <h2>Data source</h2>
+      <div class="opt"><label><input type="radio" name="mode" value="demo"> Demo (simulated in the browser)</label>
+        <label><input type="radio" name="mode" value="live"> Live (MQTT broker)</label></div>
+      <label for="broker">MQTT broker over WebSocket</label><input id="broker" placeholder="ws://localhost:9001 or wss://lab-host/mqtt">
+      <label for="speed">Demo speed (simulated seconds per real second)</label><input id="speed" type="number" min="1" max="120">
+      <div class="row"><button class="btn" id="btnSave">Save and reload</button></div>
+      <p class="muted" style="margin-top:16px">Live mode listens to <span class="code">buspulse/bus/+/telemetry</span> and <span class="code">/event</span>, published by
+        <span class="code">simulator/bus_simulator.py</span> today and by the Raspberry Pi later.</p>
+    </div>
+  </section>
+</main>
+
+<script src="../shared/vendor/leaflet/leaflet.js"></script>
+<script src="../shared/vendor/chart.umd.js"></script>
+<script src="../shared/vendor/mqtt.min.js"></script>
+<script src="../shared/config.js"></script>
+<script src="../shared/routes.js"></script>
+<script src="../shared/buspulse-data.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
